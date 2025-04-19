@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cassert>
 
 #include "Node.h"
 
@@ -40,6 +41,12 @@ public:
 
     int getWallCount();
 
+    Node* getNodeAt(int row, int col) const {
+        assert(row >= 0 && row < height);
+        assert(col >= 0 && col < width);
+        return maze2dVector[row][col];
+    }
+
 
     // setters
 
@@ -61,5 +68,14 @@ public:
     void generateNewWalls();
 
     void breadthFirstSearchMethod();
+
+    //A* search method
+
+    void aStarSearchMethod();
+
+    // D* Lite search method
+
+    void dStarLiteSearchMethod();
+
 
 };

@@ -5,11 +5,13 @@
 #include <map>
 #include <ctime>
 #include <queue>
+#include <set>
+#include <limits>
 
 #include "Maze.h"
+#include "Node.h"
 
 using namespace std;
-
 
 // constructors / destructor
 Maze::Maze() 
@@ -19,26 +21,29 @@ Maze::Maze()
     height = 0;
     width = 0;
     wallCount = 0;
-    vector<vector<Node*>> maze2dVector;
+    //vector<vector<Node*>> maze2dVector;
 };
 
 Maze::~Maze()
 {
-    if (entranceNode != nullptr)
-    {
-        delete entranceNode;
-    }
-    if (exitNode != nullptr)
-    {
-        delete exitNode;
-    }
+    // if (entranceNode != nullptr)
+    // {
+    //     delete entranceNode;
+    // }
+    // if (exitNode != nullptr)
+    // {
+    //     delete exitNode;
+    // }
     for (int y = 0; y < height; y++)
     {
-        for (int x = 0; y < width; x++)
+        for (int x = 0; x < width; x++)
         {
             delete maze2dVector[y][x];
         }
     }
+
+    maze2dVector.clear();
+
 };
 
 
@@ -107,7 +112,7 @@ void Maze::generateNewMaze()
     {
         for (int y = 0; y < height; y++)
         {
-            for (int x = 0; y < width; x++)
+            for (int x = 0; x < width; x++)
             {
                 delete maze2dVector[y][x];
             }
@@ -115,11 +120,14 @@ void Maze::generateNewMaze()
     }
 
     // resize array, then make the nodes in it
+
+    maze2dVector.clear();
+
     maze2dVector.resize(height);
     for (int y = 0; y < height; y++)
     {
         maze2dVector[y].resize(width);
-        for (int x = 0; y < width; x++)
+        for (int x = 0; x < width; x++)
         {
             maze2dVector[y][x] = new Node();
         }
@@ -142,7 +150,7 @@ void Maze::generateNewWalls()
     // reset all pointers
     for (int y = 0; y < height; y++)
     {
-        for (int x = 0; y < width; x++)
+        for (int x = 0; x < width; x++)
         {
             Node* currentNode = maze2dVector[y][x];
             
@@ -158,7 +166,7 @@ void Maze::generateNewWalls()
             {
                 currentNode->setWestNode(maze2dVector[y][x - 1]);
             }
-            if (y < width - 1)
+            if (x < width - 1)
             {
                 currentNode->setEastNode(maze2dVector[y][x + 1]);
             }
@@ -170,8 +178,8 @@ void Maze::generateNewWalls()
     while (successCount < wallCount)
     {
         // generates random x and y coordinates for node
-        int xCoordinate = rand() % height;
-        int yCoordinate = rand() % width;
+        int yCoordinate = rand() % height;
+        int xCoordinate = rand() % width;
         Node* currentNode = maze2dVector[yCoordinate][xCoordinate];
 
         // generates num 0-3, 0=North, 1=South, 2=East, 3=West
@@ -254,5 +262,95 @@ void Maze::breadthFirstSearchMethod()
 
         nodeQueue.pop();
     }
+
+
 };
 
+//A* search method for the graph
+void Maze::aStarSearchMethod()
+{
+    //comparator for the prio queue
+    auto compare = [](Node* currNode, Node* currNode1) {
+        //node with the smaller fScore should come out first
+        return currNode->getFScore() > currNode1->getFScore();
+    };
+
+    //open set implemented as a min-heap based on the fScore
+    priority_queue<Node*, vector<Node*>, decltype(compare)> openSet(compare);
+    //map to reconstruct the path, for each node that it passes through, store its predeccessor
+    map<Node*, Node*> from;
+
+    //loop through every node in the grid
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        Node* node = maze2dVector[y][x];
+          //set g to infinity
+        node->setGScore(INT_MAX);
+          //set h to 0
+        node->setHScore(0);
+          //f = g + h
+        node->calcFScore();
+          //mark as unvisited
+        node->setVisitedValue(false);
+      }
+    }
+
+    //cost from start to start = 0
+    entranceNode->setGScore(0);
+    //heuristic estimate to goal
+    entranceNode->setHScore(entranceNode->calcHeuristic(exitNode));
+    //f = g + h
+    entranceNode->calcFScore();
+
+    //add the starting node to the open set
+    openSet.push(entranceNode);
+
+    //Main A* loop to keep exploring until there is nothing left
+    while (!openSet.empty()) {
+        //grab node with lowest fScore
+      Node* currNode = openSet.top();
+      openSet.pop();
+
+        //mark as visited
+      currNode->setVisitedValue(true);
+
+        //check if we reached the goal node (end)
+      if (currNode == exitNode) {
+        cout << "A* path has found the exit!" << endl;
+        return;
+      }
+
+
+        //examine each neighbor
+      vector<Node*> neighbors = {currNode->getNorthNode(), currNode->getSouthNode(), currNode->getEastNode(), currNode->getWestNode()};
+
+        //iterate through each neighbor
+      for (Node* neighbor : neighbors) {
+        if (neighbor == nullptr) {
+          continue;
+        }
+          // the temp g score is curr gScore + cost(curr->neighbor) == 1
+        int tempGScore = currNode->getGScore() + 1;
+
+          //if this path to neighbor is better than any previous one
+        if (tempGScore < neighbor->getFScore()) {
+            //record the best predecessor
+          from[neighbor] = currNode;
+            //update gScore
+          neighbor->setGScore(tempGScore);
+            //update hScore
+          neighbor->setHScore(neighbor->calcHeuristic(exitNode));
+            //update fScore
+          neighbor->calcFScore();
+
+            //if we haven't visited this neighbor, add it to the open set
+          if (!neighbor->checkIsVisited()) {
+            openSet.push(neighbor);
+          }
+        }
+      }
+    }
+
+    cout << "A* failed to find a path" << endl;
+
+};
