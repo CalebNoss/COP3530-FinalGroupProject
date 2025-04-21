@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -70,87 +72,82 @@ bool Node::checkIsVisited()
 }
 
 int Node::getGScore() const {
-  return gScore;
+    return gScore;
 }
 
 int Node::getHScore() const {
-  return hScore;
+    return hScore;
 }
 
-int Node:: getFScore() const {
-  return fScore;
+int Node::getFScore() const {
+    return fScore;
 }
 
 int Node::getX() const {
-  return x;
+    return x;
 }
 
 int Node::getY() const {
-  return y;
+    return y;
 }
+
+
 
 
 // setters
 
-Node* Node::setNorthNode(Node* newNodePointer)
+void Node::setNorthNode(Node* newNodePointer)
 {
     northNode = newNodePointer;
-    return northNode;
 }
 
-Node* Node::setSouthNode(Node* newNodePointer)
+void Node::setSouthNode(Node* newNodePointer)
 {
     southNode = newNodePointer;
-    return southNode;
 }
 
-Node* Node::setEastNode(Node* newNodePointer)
+void Node::setEastNode(Node* newNodePointer)
 {
     eastNode = newNodePointer;
-    return eastNode;
 }
 
-Node* Node::setWestNode(Node* newNodePointer)
+void Node::setWestNode(Node* newNodePointer)
 {
     westNode = newNodePointer;
-    return westNode;
 }
 
-bool Node::setAsEntrance(bool newValue)
+void Node::setAsEntrance(bool newValue)
 {
     isEntrance = newValue;
-    return isEntrance;
 }
 
-bool Node::setAsExit(bool newValue)
+void Node::setAsExit(bool newValue)
 {
     isExit = newValue;
-    return isExit;
 }
 
-bool Node::setVisitedValue(bool newValue)
+void Node::setVisitedValue(bool newValue)
 {
     isVisited = newValue;
-    return isVisited;
 }
 
 void Node::setGScore(int g) {
-  gScore = g;
+    gScore = g;
 }
 
 void Node::setHScore(int h) {
-  hScore = h;
+    hScore = h;
 }
 
 void Node::calcFScore() {
-  fScore = gScore + hScore;
+    fScore = gScore + hScore;
 }
 
 void Node::setPos(int newX, int newY) {
-  x = newX;
-  y = newY;
+    x = newX;
+    y = newY;
 }
 
 int Node::calcHeuristic(Node* goalNode) {
-  return abs(x - goalNode->getX()) + abs(y - goalNode->getY());
+    return abs(x - goalNode->getX()) + abs(y - goalNode->getY());
 }
