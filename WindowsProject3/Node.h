@@ -61,19 +61,19 @@ public:
 
     // setters
 
-    Node* setNorthNode(Node* newNodePointer);
+    void setNorthNode(Node* newNodePointer);
 
-    Node* setSouthNode(Node* newNodePointer);
+    void setSouthNode(Node* newNodePointer);
 
-    Node* setEastNode(Node* newNodePointer);
+    void setEastNode(Node* newNodePointer);
 
-    Node* setWestNode(Node* newNodePointer);
+    void setWestNode(Node* newNodePointer);
 
-    bool setAsEntrance(bool newValue);
+    void setAsEntrance(bool newValue);
 
-    bool setAsExit(bool newValue);
+    void setAsExit(bool newValue);
 
-    bool setVisitedValue(bool newValue);
+    void setVisitedValue(bool newValue);
 
     // setters A*
 
