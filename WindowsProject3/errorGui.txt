@@ -1,0 +1,33 @@
+Label.Label1 {
+    HorizontalAlignment = Center;
+    ScrollbarPolicy = Automatic;
+    Size = (200, 100);
+    Text = "Wall count exceeded maximum possible for selected width and height";
+    TextSize = 19;
+    VerticalAlignment = Center;
+
+    Renderer {
+        BorderColor = rgba(240, 240, 240, 215);
+        TextColor = rgba(255, 255, 255, 215);
+        TextureBackground = None;
+
+        Scrollbar {
+            ArrowBackgroundColor = rgba(160, 160, 160, 215);
+            ArrowBackgroundColorHover = rgba(170, 170, 170, 215);
+            ArrowColor = rgba(200, 200, 200, 215);
+            ArrowColorHover = rgba(225, 225, 225, 215);
+            TextureArrowDown = None;
+            TextureArrowDownHover = None;
+            TextureArrowUp = None;
+            TextureArrowUpHover = None;
+            TextureThumb = None;
+            TextureThumbHover = None;
+            TextureTrack = None;
+            TextureTrackHover = None;
+            ThumbColor = rgba(185, 185, 185, 215);
+            ThumbColorHover = rgba(195, 195, 195, 215);
+            TrackColor = rgba(160, 160, 160, 215);
+            TrackColorHover = rgba(170, 170, 170, 215);
+        }
+    }
+}
