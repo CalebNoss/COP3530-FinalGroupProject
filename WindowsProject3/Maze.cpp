@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -8,32 +10,32 @@
 #include <set>
 #include <limits>
 
+
+
+#include <SFML/Graphics.hpp>
+#include <TGUI/TGUI.hpp>
+#include <TGUI/Backend/SFML-Graphics.hpp>
+
 #include "Maze.h"
 #include "Node.h"
 
 using namespace std;
 
+
 // constructors / destructor
-Maze::Maze() 
+Maze::Maze()
 {
     entranceNode = nullptr;
     exitNode = nullptr;
     height = 0;
     width = 0;
     wallCount = 0;
-    //vector<vector<Node*>> maze2dVector;
+    isFinished = false;
+    vector<vector<Node*>> maze2dVector;
 };
 
 Maze::~Maze()
 {
-    // if (entranceNode != nullptr)
-    // {
-    //     delete entranceNode;
-    // }
-    // if (exitNode != nullptr)
-    // {
-    //     delete exitNode;
-    // }
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
@@ -74,6 +76,11 @@ int Maze::getWallCount()
     return wallCount;
 };
 
+bool Maze::getFinishedValue()
+{
+    return isFinished;
+};
+
 
 // setters
 
@@ -102,6 +109,11 @@ void Maze::setWallCount(int newWallCount)
     wallCount = newWallCount;
 };
 
+void Maze::setFinishedValue(bool finishedValue)
+{
+    isFinished = finishedValue;
+};
+
 
 // functions
 
@@ -112,7 +124,7 @@ void Maze::generateNewMaze()
     {
         for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; y < width; x++)
             {
                 delete maze2dVector[y][x];
             }
@@ -120,9 +132,6 @@ void Maze::generateNewMaze()
     }
 
     // resize array, then make the nodes in it
-
-    maze2dVector.clear();
-
     maze2dVector.resize(height);
     for (int y = 0; y < height; y++)
     {
@@ -130,6 +139,7 @@ void Maze::generateNewMaze()
         for (int x = 0; x < width; x++)
         {
             maze2dVector[y][x] = new Node();
+            maze2dVector[y][x]->setPos(x, y);
         }
     }
 
@@ -138,10 +148,12 @@ void Maze::generateNewMaze()
     // randomly set a node on the left wall to be the entrance
     int randomEntrance = rand() % height;
     maze2dVector[randomEntrance][0]->setAsEntrance(true);
+    entranceNode = maze2dVector[randomEntrance][0];
 
     // randomly set a node on the right wall to be the exit
     int randomExit = rand() % height;
     maze2dVector[randomExit][width - 1]->setAsExit(true);
+    exitNode = maze2dVector[randomExit][width - 1];
 
 };
 
@@ -153,7 +165,7 @@ void Maze::generateNewWalls()
         for (int x = 0; x < width; x++)
         {
             Node* currentNode = maze2dVector[y][x];
-            
+
             if (y > 0)
             {
                 currentNode->setNorthNode(maze2dVector[y - 1][x]);
@@ -178,14 +190,14 @@ void Maze::generateNewWalls()
     while (successCount < wallCount)
     {
         // generates random x and y coordinates for node
-        int yCoordinate = rand() % height;
         int xCoordinate = rand() % width;
+        int yCoordinate = rand() % height;
         Node* currentNode = maze2dVector[yCoordinate][xCoordinate];
 
         // generates num 0-3, 0=North, 1=South, 2=East, 3=West
         int cardinalDirection = rand() % 4;
         if (cardinalDirection == 0)
-        { 
+        {
             if (currentNode->getNorthNode() != nullptr)
             {
                 // sets pointed to node to not point back, then deletes pointer to it, effectively making a wall
@@ -234,46 +246,152 @@ void Maze::breadthFirstSearchMethod()
     nodeQueue.push(entranceNode);
     entranceNode->setVisitedValue(true);
 
-    while (!nodeQueue.empty())
-    {
-        // for each node, if it is the exit end the loop, otherwise push every adjascent node that isn't visited into the queue
-        Node* currentNode = nodeQueue.front();
-        currentNode->setVisitedValue(true);
-        if (currentNode->checkIsExit() == true)
-        {
-            break;
-        }
-        if (currentNode->getNorthNode() != nullptr && currentNode->getNorthNode()->checkIsVisited() == false)
-        {
-            nodeQueue.push(currentNode->getNorthNode());
-        }
-        if (currentNode->getSouthNode() != nullptr && currentNode->getSouthNode()->checkIsVisited() == false)
-        {
-            nodeQueue.push(currentNode->getSouthNode());
-        }
-        if (currentNode->getEastNode() != nullptr && currentNode->getEastNode()->checkIsVisited() == false)
-        {
-            nodeQueue.push(currentNode->getEastNode());
-        }
-        if (currentNode->getWestNode() != nullptr && currentNode->getWestNode()->checkIsVisited() == false)
-        {
-            nodeQueue.push(currentNode->getWestNode());
-        }
+    sf::RenderWindow mainWindow(sf::VideoMode({ 1000, 1000 }), "BreadthFirstSearch");
 
-        nodeQueue.pop();
+    // initial render, set to background to use for the rest of the loop
+    int nodeWidth = (mainWindow.getSize().x - (width - 1)) / width;
+    int nodeHeight = (mainWindow.getSize().y - (height - 1)) / height;
+
+    sf::RenderTexture mazeBackground(mainWindow.getSize());
+
+    mazeBackground.clear();
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            sf::RectangleShape rect;
+            rect.setSize(sf::Vector2f(nodeWidth, nodeHeight));
+            rect.setPosition(sf::Vector2f((x * (nodeWidth + 1)), (y * (nodeHeight + 1))));
+
+            // if node is entrance & exit, cyan color, otherwise make entrance green, ext red, visited yellow, everything else grey
+            if (maze2dVector[y][x]->checkIsEntrance() && maze2dVector[y][x]->checkIsExit())
+            {
+                rect.setFillColor(sf::Color::Cyan);
+            }
+            else if (maze2dVector[y][x]->checkIsEntrance())
+            {
+                rect.setFillColor(sf::Color::Green);
+            }
+            else if (maze2dVector[y][x]->checkIsExit())
+            {
+                rect.setFillColor(sf::Color::Red);
+            }
+            else if (maze2dVector[y][x]->checkIsVisited())
+            {
+                rect.setFillColor(sf::Color::Yellow);
+            }
+            else
+            {
+                rect.setFillColor(sf::Color::Color(128, 128, 128));
+            }
+
+            mazeBackground.draw(rect);
+
+            if (maze2dVector[y][x]->getSouthNode() != nullptr)
+            {
+                sf::RectangleShape NSrectConnector;
+                NSrectConnector.setSize(sf::Vector2f(nodeWidth, 1));
+                NSrectConnector.setPosition(sf::Vector2f((x * (nodeWidth + 1)), (y * (nodeHeight + 1) + nodeHeight)));
+                NSrectConnector.setFillColor(sf::Color::Color(128, 128, 128));
+                mazeBackground.draw(NSrectConnector);
+            }
+            if (maze2dVector[y][x]->getEastNode() != nullptr)
+            {
+                sf::RectangleShape EWrectConnector;
+                EWrectConnector.setSize(sf::Vector2f(1, nodeHeight));
+                EWrectConnector.setPosition(sf::Vector2f((x * (nodeWidth + 1) + nodeWidth), (y * (nodeHeight + 1))));
+                EWrectConnector.setFillColor(sf::Color::Color(128, 128, 128));
+                mazeBackground.draw(EWrectConnector);
+            }
+        }
     }
 
+    mazeBackground.display();
 
+    // make into a reuseable sprite to be background, so the whole thing doesn't need to be rerendered every time
+    sf::Sprite mazeBackgroundSprite(mazeBackground.getTexture());
+
+
+    // make vector of visited nodes so that they can be remembered
+    vector<Node*> visitedNodesVector;
+
+
+
+    while (mainWindow.isOpen())
+    {
+        mainWindow.clear();
+        mainWindow.draw(mazeBackgroundSprite);
+
+        int nodeWidth = (mainWindow.getSize().x - (width - 1)) / width;
+        int nodeHeight = (mainWindow.getSize().y - (height - 1)) / height;
+
+        if (!nodeQueue.empty() && isFinished == false)
+        {
+            // for each node, if it is the exit end the loop, otherwise push every adjascent node that isn't visited into the queue
+            Node* currentNode = nodeQueue.front();
+            currentNode->setVisitedValue(true);
+            visitedNodesVector.push_back(currentNode);
+            if (currentNode->checkIsExit() == true)
+            {
+                break;
+            }
+            if (currentNode->getNorthNode() != nullptr && currentNode->getNorthNode()->checkIsVisited() == false)
+            {
+                nodeQueue.push(currentNode->getNorthNode());
+            }
+            if (currentNode->getSouthNode() != nullptr && currentNode->getSouthNode()->checkIsVisited() == false)
+            {
+                nodeQueue.push(currentNode->getSouthNode());
+            }
+            if (currentNode->getEastNode() != nullptr && currentNode->getEastNode()->checkIsVisited() == false)
+            {
+                nodeQueue.push(currentNode->getEastNode());
+            }
+            if (currentNode->getWestNode() != nullptr && currentNode->getWestNode()->checkIsVisited() == false)
+            {
+                nodeQueue.push(currentNode->getWestNode());
+            }
+
+            nodeQueue.pop();
+        }
+
+        while (auto event = mainWindow.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
+                mainWindow.close();
+        }
+
+        for (Node* currNode : visitedNodesVector)
+        {
+            sf::RectangleShape rect;
+            rect.setSize(sf::Vector2f(nodeWidth, nodeHeight));
+            rect.setPosition(sf::Vector2f((currNode->getX() * (nodeWidth + 1)), (currNode->getY() * (nodeHeight + 1))));
+            rect.setFillColor(sf::Color::Yellow);
+            mainWindow.draw(rect);
+        }
+
+        mainWindow.display();
+    }
 };
 
 //A* search method for the graph
 void Maze::aStarSearchMethod()
 {
+
+    sf::RenderWindow mainWindow(sf::VideoMode({ 1000, 1000 }), "A* Search Algorithm");
+
+
+
     //comparator for the prio queue
     auto compare = [](Node* currNode, Node* currNode1) {
         //node with the smaller fScore should come out first
+        if (currNode->getFScore() == currNode1->getFScore())
+        {
+            return currNode->getHScore() > currNode1->getHScore(); // prioritize H score if F scores are tied, gives it a priorty so it doesn't wander if there aren't many walls
+        }
         return currNode->getFScore() > currNode1->getFScore();
-    };
+        };
 
     //open set implemented as a min-heap based on the fScore
     priority_queue<Node*, vector<Node*>, decltype(compare)> openSet(compare);
@@ -282,17 +400,17 @@ void Maze::aStarSearchMethod()
 
     //loop through every node in the grid
     for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        Node* node = maze2dVector[y][x];
-          //set g to infinity
-        node->setGScore(INT_MAX);
-          //set h to 0
-        node->setHScore(0);
-          //f = g + h
-        node->calcFScore();
-          //mark as unvisited
-        node->setVisitedValue(false);
-      }
+        for (int x = 0; x < width; x++) {
+            Node* node = maze2dVector[y][x];
+            //set g to infinity
+            node->setGScore(INT_MAX);
+            //set h to 0
+            node->setHScore(0);  // IS THIS WHAT THIS GETS SET TO FOR EVERY NODE? |||||||||||||||||||||||||||||||||||||||||
+            //f = g + h
+            node->calcFScore();
+            //mark as unvisited
+            node->setVisitedValue(false);
+        }
     }
 
     //cost from start to start = 0
@@ -305,52 +423,148 @@ void Maze::aStarSearchMethod()
     //add the starting node to the open set
     openSet.push(entranceNode);
 
-    //Main A* loop to keep exploring until there is nothing left
-    while (!openSet.empty()) {
-        //grab node with lowest fScore
-      Node* currNode = openSet.top();
-      openSet.pop();
+    // initial render, set to background to use for the rest of the loop
+    int nodeWidth = (mainWindow.getSize().x - (width - 1)) / width;
+    int nodeHeight = (mainWindow.getSize().y - (height - 1)) / height;
+    
+    sf::RenderTexture mazeBackground(mainWindow.getSize());
 
-        //mark as visited
-      currNode->setVisitedValue(true);
+    mazeBackground.clear();
 
-        //check if we reached the goal node (end)
-      if (currNode == exitNode) {
-        cout << "A* path has found the exit!" << endl;
-        return;
-      }
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            sf::RectangleShape rect;
+            rect.setSize(sf::Vector2f(nodeWidth, nodeHeight));
+            rect.setPosition(sf::Vector2f((x * (nodeWidth + 1)), (y * (nodeHeight + 1))));
 
+            // if node is entrance & exit, cyan color, otherwise make entrance green, ext red, visited yellow, everything else grey
+            if (maze2dVector[y][x]->checkIsEntrance() && maze2dVector[y][x]->checkIsExit())
+            {
+                rect.setFillColor(sf::Color::Cyan);
+            }
+            else if (maze2dVector[y][x]->checkIsEntrance())
+            {
+                rect.setFillColor(sf::Color::Green);
+            }
+            else if (maze2dVector[y][x]->checkIsExit())
+            {
+                rect.setFillColor(sf::Color::Red);
+            }
+            else if (maze2dVector[y][x]->checkIsVisited())
+            {
+                rect.setFillColor(sf::Color::Yellow);
+            }
+            else
+            {
+                rect.setFillColor(sf::Color::Color(128, 128, 128));
+            }
 
-        //examine each neighbor
-      vector<Node*> neighbors = {currNode->getNorthNode(), currNode->getSouthNode(), currNode->getEastNode(), currNode->getWestNode()};
+            mazeBackground.draw(rect);
 
-        //iterate through each neighbor
-      for (Node* neighbor : neighbors) {
-        if (neighbor == nullptr) {
-          continue;
+            if (maze2dVector[y][x]->getSouthNode() != nullptr)
+            {
+                sf::RectangleShape NSrectConnector;
+                NSrectConnector.setSize(sf::Vector2f(nodeWidth, 1));
+                NSrectConnector.setPosition(sf::Vector2f((x * (nodeWidth + 1)), (y * (nodeHeight + 1) + nodeHeight)));
+                NSrectConnector.setFillColor(sf::Color::Color(128, 128, 128));
+                mazeBackground.draw(NSrectConnector);
+            }
+            if (maze2dVector[y][x]->getEastNode() != nullptr)
+            {
+                sf::RectangleShape EWrectConnector;
+                EWrectConnector.setSize(sf::Vector2f(1, nodeHeight));
+                EWrectConnector.setPosition(sf::Vector2f((x * (nodeWidth + 1) + nodeWidth), (y * (nodeHeight + 1))));
+                EWrectConnector.setFillColor(sf::Color::Color(128, 128, 128));
+                mazeBackground.draw(EWrectConnector);
+            }
         }
-          // the temp g score is curr gScore + cost(curr->neighbor) == 1
-        int tempGScore = currNode->getGScore() + 1;
-
-          //if this path to neighbor is better than any previous one
-        if (tempGScore < neighbor->getFScore()) {
-            //record the best predecessor
-          from[neighbor] = currNode;
-            //update gScore
-          neighbor->setGScore(tempGScore);
-            //update hScore
-          neighbor->setHScore(neighbor->calcHeuristic(exitNode));
-            //update fScore
-          neighbor->calcFScore();
-
-            //if we haven't visited this neighbor, add it to the open set
-          if (!neighbor->checkIsVisited()) {
-            openSet.push(neighbor);
-          }
-        }
-      }
     }
 
-    cout << "A* failed to find a path" << endl;
+    mazeBackground.display();
+
+    // make into a reuseable sprite to be background, so the whole thing doesn't need to be rerendered every time
+    sf::Sprite mazeBackgroundSprite(mazeBackground.getTexture());
+
+
+    // make vector of visited nodes so that they can be remembered
+    vector<Node*> visitedNodesVector;
+
+    while (mainWindow.isOpen())
+    {
+        mainWindow.clear();
+        mainWindow.draw(mazeBackgroundSprite);
+
+        int nodeWidth = (mainWindow.getSize().x - (width - 1)) / width;
+        int nodeHeight = (mainWindow.getSize().y - (height - 1)) / height;
+
+        //Main A* loop to keep exploring until there is nothing left
+        if (!openSet.empty() && isFinished == false) {
+            //grab node with lowest fScore
+            Node* currNode = openSet.top();
+            openSet.pop();
+
+            //mark as visited and render as visited
+            currNode->setVisitedValue(true);
+            visitedNodesVector.push_back(currNode);
+
+
+            //check if we reached the goal node (end)
+            if (currNode == exitNode) {
+                std::cout << "A* path has found the exit!" << endl;
+                return;
+            }
+
+
+            //examine each neighbor
+            vector<Node*> neighbors = { currNode->getNorthNode(), currNode->getSouthNode(), currNode->getEastNode(), currNode->getWestNode() };
+
+            //iterate through each neighbor
+            for (Node* neighbor : neighbors) {
+                if (neighbor == nullptr) {
+                    continue;
+                }
+                // the temp g score is curr gScore + cost(curr->neighbor) == 1
+                int tempGScore = currNode->getGScore() + 1;
+
+                //if this path to neighbor is better than any previous one
+                if (tempGScore < neighbor->getGScore()) { // SHOULDN'T THIS COMPARE G SCORE TO G SCORE? ||||||||||||||||||||||||||||||||||
+                    //record the best predecessor
+                    from[neighbor] = currNode;
+                    //update gScore
+                    neighbor->setGScore(tempGScore);
+                    //update hScore
+                    neighbor->setHScore(neighbor->calcHeuristic(exitNode));
+                    //update fScore
+                    neighbor->calcFScore();
+
+                    //if we haven't visited this neighbor, add it to the open set
+                    if (!neighbor->checkIsVisited()) {
+                        openSet.push(neighbor);
+                    }
+                }
+            }
+        }
+        while (auto event = mainWindow.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
+                mainWindow.close();
+        }
+
+        for (Node* currNode : visitedNodesVector)
+        {
+            sf::RectangleShape rect;
+            rect.setSize(sf::Vector2f(nodeWidth, nodeHeight));
+            rect.setPosition(sf::Vector2f((currNode->getX()* (nodeWidth + 1)), (currNode->getY()* (nodeHeight + 1))));
+            rect.setFillColor(sf::Color::Yellow);
+            mainWindow.draw(rect);
+        }
+
+        mainWindow.display();
+
+    }
+
+    std::cout << "A* failed to find a path" << endl;
 
 };
