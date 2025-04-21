@@ -27,8 +27,8 @@ int main()
         if (wallCount > maxWallVar)
         {
             // make error message and quit function
-            sf::RenderWindow errorWindow(sf::VideoMode({ 800, 800 }), "Error");
-            tgui::Gui errorGui(mainWindow);
+            sf::RenderWindow errorWindow(sf::VideoMode({ 200, 100 }), "Error");
+            tgui::Gui errorGui(errorWindow);
             errorGui.loadWidgetsFromFile("errorGui.txt", true);
             while (errorWindow.isOpen())
             {
