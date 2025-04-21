@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <cassert>
 
 #include "Node.h"
 
@@ -20,6 +19,7 @@ private:
     int height;
     int width;
     int wallCount;
+    bool isFinished;
     vector<vector<Node*>> maze2dVector;
 
 public:
@@ -41,11 +41,7 @@ public:
 
     int getWallCount();
 
-    Node* getNodeAt(int row, int col) const {
-        assert(row >= 0 && row < height);
-        assert(col >= 0 && col < width);
-        return maze2dVector[row][col];
-    }
+    bool getFinishedValue();
 
 
     // setters
@@ -60,6 +56,8 @@ public:
 
     void setWallCount(int newWallCount);
 
+    void setFinishedValue(bool finishedValue);
+
 
     // functions
 
@@ -69,13 +67,6 @@ public:
 
     void breadthFirstSearchMethod();
 
-    //A* search method
-
     void aStarSearchMethod();
-
-    // D* Lite search method
-
-    void dStarLiteSearchMethod();
-
 
 };
