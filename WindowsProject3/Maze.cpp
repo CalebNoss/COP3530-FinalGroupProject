@@ -249,8 +249,8 @@ void Maze::breadthFirstSearchMethod()
     sf::RenderWindow mainWindow(sf::VideoMode({ 1000, 1000 }), "BreadthFirstSearch");
 
     // initial render, set to background to use for the rest of the loop
-    int nodeWidth = (mainWindow.getSize().x - (width - 1)) / width;
-    int nodeHeight = (mainWindow.getSize().y - (height - 1)) / height;
+    float nodeWidth = (mainWindow.getSize().x - static_cast<float>(width - 1.0f)) / width;
+    float nodeHeight = (mainWindow.getSize().y - static_cast<float>(height - 1.0f)) / height;
 
     sf::RenderTexture mazeBackground(mainWindow.getSize());
 
@@ -323,8 +323,8 @@ void Maze::breadthFirstSearchMethod()
         mainWindow.clear();
         mainWindow.draw(mazeBackgroundSprite);
 
-        int nodeWidth = (mainWindow.getSize().x - (width - 1)) / width;
-        int nodeHeight = (mainWindow.getSize().y - (height - 1)) / height;
+        float nodeWidth = (mainWindow.getSize().x - static_cast<float>(width - 1)) / width;
+        float nodeHeight = (mainWindow.getSize().y - static_cast<float>(height - 1.0f)) / height;
 
         if (!nodeQueue.empty() && isFinished == false)
         {
@@ -427,8 +427,8 @@ void Maze::breadthFirstSearchMethod()
      openSet.push(entranceNode);
 
      // initial render, set to background to use for the rest of the loop
-     int nodeWidth = (mainWindow.getSize().x - (width - 1)) / width;
-     int nodeHeight = (mainWindow.getSize().y - (height - 1)) / height;
+     float nodeWidth = (mainWindow.getSize().x - static_cast<float>(width - 1.0f)) / width;
+     float nodeHeight = (mainWindow.getSize().y - static_cast<float>(height - 1.0f)) / height;
 
      sf::RenderTexture mazeBackground(mainWindow.getSize());
 
@@ -499,8 +499,8 @@ void Maze::breadthFirstSearchMethod()
          mainWindow.clear();
          mainWindow.draw(mazeBackgroundSprite);
 
-         int nodeWidth = (mainWindow.getSize().x - (width - 1)) / width;
-         int nodeHeight = (mainWindow.getSize().y - (height - 1)) / height;
+         float nodeWidth = (mainWindow.getSize().x - static_cast<float>(width - 1)) / width;
+         float nodeHeight = (mainWindow.getSize().y - static_cast<float>(height - 1.0f)) / height;
 
          //Main A* loop to keep exploring until there is nothing left
          if (!openSet.empty() && isFinished == false) {
