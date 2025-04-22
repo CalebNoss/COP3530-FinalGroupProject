@@ -65,6 +65,10 @@ int main()
         {
             tempMaze.aStarSearchMethod();
         }
+        if (mainGui.get<tgui::CheckBox>("GreedyBestFirst")->isChecked())
+        {
+            tempMaze.greedyBestFirstSearch();
+        }
         
         });
 
