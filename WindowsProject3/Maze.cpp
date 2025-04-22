@@ -537,7 +537,7 @@ void Maze::breadthFirstSearchMethod()
                  int tempGScore = currNode->getGScore() + 1;
 
                  //if this path to neighbor is better than any previous one
-                 if (tempGScore < neighbor->getGScore()) { // SHOULDN'T THIS COMPARE G SCORE TO G SCORE? ||||||||||||||||||||||||||||||||||
+                 if (tempGScore < neighbor->getGScore()) { 
                      //record the best predecessor
                      from[neighbor] = currNode;
                      //update gScore
