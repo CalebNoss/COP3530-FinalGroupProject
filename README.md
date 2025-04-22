@@ -4,7 +4,7 @@ A C++/SFML/TGUI application that lets you generate random mazes and watch Breadt
 
 ## Features:
 - Random maze generation with adjustable width, height, and wall density
-- Visual, step-by-step animation of BFS, A*, and greedy BFS
+- Visual, step-by-step animation of BFS, A*, and greedy Best-First Search
 - Final shortest path highlighted
 - Fast rendering via SFML RenderTexture caching
 - Configurable entirely via GUI sliders and checkboxes
