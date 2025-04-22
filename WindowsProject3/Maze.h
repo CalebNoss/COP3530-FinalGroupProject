@@ -69,4 +69,6 @@ public:
 
     void aStarSearchMethod();
 
+    void greedyBestFirstSearch();
+
 };
